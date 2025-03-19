@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Student Details</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/vishnu.png') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .filter-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .filter-section h3 {
+            margin-top: 0;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+        }
+
+        .records-table th:last-child,
+        .records-table td:last-child {
+            border-right: none;
+        }
+
+        .records-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .records-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .action-link {
+            background-color: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 3px;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+        .action-link:hover {
+            background-color: #0b7dda;
+        }
+
+        .no-records {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            color: #666;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .remarks-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 100px;
+            resize: vertical;
+        }
+
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .highlight-row {
+            animation: highlightFade 3s forwards;
+        }
+
+        @keyframes highlightFade {
+            from {
+                background-color: #ffffcc;
+            }
+
+            to {
+                background-color: transparent;
+            }
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Additional styling for the updated table */
+        .status-paid {
+            background-color: #c9f6d4;
+        }
+
+        .status-partially-paid {
+            background-color: #fff3cd;
+        }
+
+        .status-not-paid {
+            background-color: #f3c6c9;
+        }
+
+        .payment-status {
+            font-weight: bold;
+        }
+
+        /* Add styles for grouped header columns */
+        .records-table th {
+            text-align: center;
+        }
+
+        .records-table thead tr:first-child th {
+            border-bottom: none;
+        }
+
+        .records-table thead tr:nth-child(2) th {
+            border-top: none;
+        }
+
+        /* Add these styles for header row separation */
+        .records-table thead {
+            border-bottom: 2px solid #ddd;
+        }
+
+        .records-table thead tr:first-child {
+            border-bottom: 1px solid #aaa;
+        }
+
+        .records-table thead tr:first-child th {
+            background-color: #e9ecef;
+        }
+
+        .records-table thead tr:nth-child(2) th {
+            background-color: #f2f2f2;
+        }
+
+        .unpaid-status {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .paid-status {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-link.payment-btn {
+            background-color: #28a745;
+        }
+
+        .action-link.remarks-btn {
+            background-color: #17a2b8;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Autocomplete styles */
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #ddd;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 4px 4px;
+            display: none;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        .autocomplete-active {
+            background-color: #4CAF50 !important;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if highlight_new %}
+        <div class="success-message">
+            <p><strong>Success!</strong> The uploaded file data has been processed and records are shown below.</p>
+        </div>
+        {% endif %}
+
+        <div class="filter-section">
+            <h3>Filter Records</h3>
+            <form action="{{ url_for('student_details') }}" method="get" class="filter-form">
+                <div class="filter-group">
+                    <label for="batch_year">Batch Year:</label>
+                    <select id="batch_year" name="batch_year">
+                        <option value="" {% if not selected_batch_year %}selected{% endif %}>All Batch Years</option>
+                        {% for year in batch_years %}
+                        <option value="{{ year }}" {% if year==selected_batch_year %}selected{% endif %}>{{ year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="regd_no">Registration No:</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="regd_no" name="regd_no" class="form-control"
+                            value="{{ selected_regd_no }}" placeholder="Enter Registration Number" autocomplete="off">
+                        <div id="autocomplete-list" class="autocomplete-items"></div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="branch">Branch:</label>
+                    <select id="branch" name="branch">
+                        <option value="" {% if not selected_branch %}selected{% endif %}>All Branches</option>
+                        {% if branches %}
+                        {% for branch_name in branches %}
+                        <option value="{{ branch_name }}" {% if branch_name==selected_branch %}selected{% endif %}>
+                            {{ branch_name }}
+                        </option>
+                        {% endfor %}
+                        {% else %}
+                        <option value="CSE" {% if "CSE"==selected_branch %}selected{% endif %}>CSE</option>
+                        <option value="IT" {% if "IT"==selected_branch %}selected{% endif %}>IT</option>
+                        <option value="CSE-AI&DS" {% if "CSE-AI&DS"==selected_branch %}selected{% endif %}>CSE-AI&DS
+                        </option>
+                        <option value="CSE-AI&ML" {% if "CSE-AI&ML"==selected_branch %}selected{% endif %}>CSE-AI&ML
+                        </option>
+                        <option value="ECE" {% if "ECE"==selected_branch %}selected{% endif %}>ECE</option>
+                        <option value="EEE" {% if "EEE"==selected_branch %}selected{% endif %}>EEE</option>
+                        <option value="CE" {% if "CE"==selected_branch %}selected{% endif %}>CE</option>
+                        <option value="ME" {% if "ME"==selected_branch %}selected{% endif %}>ME</option>
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="display_type">Display Type:</label>
+                    <select id="display_type" name="display_type">
+                        <option value="student_details" {% if selected_display_type=='student_details' %}selected{%
+                            endif %}>Student Details</option>
+                        <option value="payment_details" {% if selected_display_type=='payment_details' %}selected{%
+                            endif %}>Payment Details</option>
+                    </select>
+                </div>
+
+                <button type="submit">Filter</button>
+            </form>
+        </div>
+
+        {% if student_records %}
+        <table class="records-table">
+            <thead>
+                {% if student_records[0].display_type == 'student_details' %}
+                <tr>
+                    <th>Batch Year</th>
+                    <th>Reg No</th>
+                    <th>Name</th>
+                    <th>Branch</th>
+                    <th>Mobile</th>
+                </tr>
+                {% else %}
+                <tr>
+                    <th>Batch Year</th>
+                    <th>Reg No</th>
+                    <th>Name</th>
+                    <th>Branch</th>
+                    <th colspan="4">Fee Types and Status</th>
+                    <th>Remarks</th>
+                    <th>Action</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>CRT</th>
+                    <th>Status</th>
+                    <th>Phase 2/Phase 3</th>
+                    <th>Status</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                {% endif %}
+            </thead>
+            <tbody>
+                {% for record in student_records %}
+                <tr class="{% if highlight_new %}highlight-row{% endif %}">
+                    {% if record.display_type == 'student_details' %}
+                    <td>{{ record.batch_year }}</td>
+                    <td>{{ record.registration_number }}</td>
+                    <td>{{ record.name }}</td>
+                    <td>{{ record.branch }}</td>
+                    <td>{{ record.mobile }}</td>
+                    {% else %}
+                    <td>{{ record.batch_year }}</td>
+                    <td>{{ record.registration_number }}</td>
+                    <td>{{ record.name }}</td>
+                    <td>{{ record.branch }}</td>
+
+                    <!-- CRT Fee Column -->
+                    <td>
+                        {% if record.fee_info.get('CRT', {}).get('amount', 0) > 0 %}
+                        ₹{{ record.fee_info.get('CRT', {}).get('amount', 0) }}
+                        {% if record.fee_info.get('CRT', {}).get('paid', 0) > 0 %}
+                        (₹{{ record.fee_info.get('CRT', {}).get('paid', 0) }})
+                        {% endif %}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+
+                    <!-- CRT Status Column -->
+                    <td>
+                        {% if record.fee_info.get('CRT', {}).get('amount', 0) > 0 %}
+                        <span {% if record.fee_info.get('CRT', {}).get('status')=='Paid' %}class="paid-status" {% elif
+                            record.fee_info.get('CRT', {}).get('status')=='Partially Paid'
+                            %}style="color: orange; font-weight: bold; background-color: #fff3cd; padding: 3px 6px; border-radius: 3px;"
+                            {% else %}class="unpaid-status" {% endif %}>
+                            {{ record.fee_info.get('CRT', {}).get('status', 'Not Paid') }}
+                        </span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+
+                    <!-- Phase 2/3 Fee Column -->
+                    <td>
+                        <!-- Phase 2 Amount -->
+                        {% if record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 %}
+                        <div>
+                            Phase 2: ₹{{ record.fee_info.get('Phase 2', {}).get('amount', 0) }}
+                            {% if record.fee_info.get('Phase 2', {}).get('paid', 0) > 0 %}
+                            (₹{{ record.fee_info.get('Phase 2', {}).get('paid', 0) }})
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Phase 3 Amount -->
+                        {% if record.fee_info.get('Phase 3', {}).get('amount', 0) > 0 %}
+                        <div>
+                            {% if record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 %}
+                            <hr style="margin: 5px 0;">{% endif %}
+                            Phase 3: ₹{{ record.fee_info.get('Phase 3', {}).get('amount', 0) }}
+                            {% if record.fee_info.get('Phase 3', {}).get('paid', 0) > 0 %}
+                            (₹{{ record.fee_info.get('Phase 3', {}).get('paid', 0) }})
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- If neither Phase has data -->
+                        {% if not record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 and not
+                        record.fee_info.get('Phase 3', {}).get('amount', 0) > 0 %}
+                        -
+                        {% endif %}
+                    </td>
+
+                    <!-- Phase 2/3 Status Column -->
+                    <td>
+                        <!-- Phase 2 Status -->
+                        {% if record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 %}
+                        <div>
+                            <span {% if record.fee_info.get('Phase 2', {}).get('status')=='Paid' %}class="paid-status"
+                                {% elif record.fee_info.get('Phase 2', {}).get('status')=='Partially Paid'
+                                %}style="color: orange; font-weight: bold; background-color: #fff3cd; padding: 3px 6px; border-radius: 3px;"
+                                {% else %}class="unpaid-status" {% endif %}>
+                                {{ record.fee_info.get('Phase 2', {}).get('status', 'Not Paid') }}
+                            </span>
+
+
+                        </div>
+                        {% endif %}
+
+                        <!-- Phase 3 Status -->
+                        {% if record.fee_info.get('Phase 3', {}).get('amount', 0) > 0 %}
+                        <div>
+                            {% if record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 %}
+                            <hr style="margin: 5px 0;">{% endif %}
+                            <span {% if record.fee_info.get('Phase 3', {}).get('status')=='Paid' %}class="paid-status"
+                                {% elif record.fee_info.get('Phase 3', {}).get('status')=='Partially Paid'
+                                %}style="color: orange; font-weight: bold; background-color: #fff3cd; padding: 3px 6px; border-radius: 3px;"
+                                {% else %}class="unpaid-status" {% endif %}>
+                                {{ record.fee_info.get('Phase 3', {}).get('status', 'Not Paid') }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- If neither Phase has data -->
+                        {% if not record.fee_info.get('Phase 2', {}).get('amount', 0) > 0 and not
+                        record.fee_info.get('Phase 3', {}).get('amount', 0) > 0 %}
+                        -
+                        {% endif %}
+                    </td>
+
+                    <!-- Combine remarks from all fee types -->
+                    <td class="remarks-cell" id="remarks-{{ loop.index }}">
+                        {{ record.fee_info.get('CRT', {}).get('remarks', '') or
+                        record.fee_info.get('Phase 2', {}).get('remarks', '') or
+                        record.fee_info.get('Phase 3', {}).get('remarks', '') or
+                        'No remarks' }}
+                    </td>
+
+                    <!-- Action column -->
+                    <td>
+                        <div class="action-buttons">
+                            <!-- Replace multiple payment buttons with a single one -->
+                            <a href="{{ url_for('payments', regd_no=record.registration_number) }}"
+                                class="action-link payment-btn" title="Make Payment">
+                                Pay
+                            </a>
+
+                            <a href="#" class="action-link remarks-btn"
+                                onclick="openRemarksModal('{{ loop.index }}', '{{ record.registration_number }}', 'all', '{{ record.fee_info.get('CRT', {}).get('remarks', '') }}')">
+                                Remarks
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% elif selected_batch_year or selected_fee_type or selected_payment_status or selected_branch or
+        selected_student_name %}
+        <div class="no-records">
+            <p>No records found for the selected filters.</p>
+        </div>
+        {% else %}
+        <div class="no-records">
+            <p>Please select filters to view student records.</p>
+        </div>
+        {% endif %}
+
+        <!-- Modal for adding remarks -->
+        <div id="remarksModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRemarksModal()">&times;</span>
+                <h3>Add Remarks</h3>
+                <form id="remarksForm" class="remarks-form">
+                    <input type="hidden" id="record-id">
+                    <input type="hidden" id="registration-number">
+                    <input type="hidden" id="fee-type">
+                    <textarea id="remarks-text" placeholder="Enter remarks for this student..."></textarea>
+                    <button type="button" class="save-btn" onclick="saveRemarks()">Save Remarks</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Functions to handle the remarks modal
+        function openRemarksModal(id, regNum, feeType, currentRemarks) {
+            document.getElementById('remarksModal').style.display = 'block';
+            document.getElementById('record-id').value = id;
+            document.getElementById('registration-number').value = regNum;
+            document.getElementById('fee-type').value = feeType;
+            // Pre-fill with current remarks if any
+            if (currentRemarks && currentRemarks !== 'No remarks') {
+                document.getElementById('remarks-text').value = currentRemarks;
+            } else {
+                document.getElementById('remarks-text').value = '';
+            }
+        }
+
+        function closeRemarksModal() {
+            document.getElementById('remarksModal').style.display = 'none';
+        }
+
+        function saveRemarks() {
+            const id = document.getElementById('record-id').value;
+            const remarks = document.getElementById('remarks-text').value;
+            const regNum = document.getElementById('registration-number').value;
+            const feeType = document.getElementById('fee-type').value;
+
+            // Show loading indication
+            const saveBtn = document.querySelector('.save-btn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+
+            // Send data to server using fetch API
+            fetch('/update_remarks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_number: regNum,
+                    fee_type: feeType,
+                    remarks: remarks
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI
+                        document.getElementById(`remarks-${id}`).innerText = remarks || 'No remarks';
+                        closeRemarksModal();
+                        // Show success message
+                        alert('Remarks saved successfully');
+                    } else {
+                        alert('Error saving remarks: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving remarks. Please try again.');
+                })
+                .finally(() => {
+                    // Reset button state
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                });
+        }
+
+        // Close modal if clicked outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('remarksModal');
+            if (event.target == modal) {
+                closeRemarksModal();
+            }
+        }
+
+        // Autocomplete functionality for registration number
+        document.addEventListener('DOMContentLoaded', function () {
+            const regdNoInput = document.getElementById('regd_no');
+            const autocompleteList = document.getElementById('autocomplete-list');
+            let currentFocus = -1;
+
+            // Function to fetch suggestions from API
+            function fetchSuggestions(query) {
+                if (query.length < 2) {
+                    autocompleteList.style.display = "none";
+                    return;
+                }
+
+                fetch(`/api/students?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        autocompleteList.innerHTML = "";
+
+                        if (data.length > 0) {
+                            autocompleteList.style.display = "block";
+
+                            // Create a div for each suggestion
+                            data.forEach(item => {
+                                const suggestionDiv = document.createElement('div');
+                                // Format as "regdNo - name (batch_year)"
+                                suggestionDiv.innerHTML = `${item.regd_no} - ${item.name} (${item.batch_year})`;
+
+                                // Add click event to fill in the input
+                                suggestionDiv.addEventListener('click', function () {
+                                    regdNoInput.value = item.regd_no;
+                                    autocompleteList.style.display = "none";
+                                });
+
+                                autocompleteList.appendChild(suggestionDiv);
+                            });
+                        } else {
+                            autocompleteList.style.display = "none";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                    });
+            }
+
+            // Event listener for input changes
+            regdNoInput.addEventListener('input', function () {
+                const query = this.value;
+                fetchSuggestions(query);
+            });
+
+            // Close the autocomplete list if clicked outside
+            document.addEventListener('click', function (e) {
+                if (e.target !== regdNoInput) {
+                    autocompleteList.style.display = "none";
+                }
+            });
+
+            // Keyboard navigation
+            regdNoInput.addEventListener('keydown', function (e) {
+                const items = autocompleteList.getElementsByTagName("div");
+
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    currentFocus++;
+                    addActive(items);
+                } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    currentFocus--;
+                    addActive(items);
+                } else if (e.key === "Enter" && currentFocus > -1) {
+                    e.preventDefault();
+                    if (items[currentFocus]) {
+                        items[currentFocus].click();
+                    }
+                }
+            });
+
+            // Helper function to add active class to selected item
+            function addActive(items) {
+                if (!items || items.length === 0) return;
+
+                removeActive(items);
+
+                if (currentFocus >= items.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+
+                items[currentFocus].classList.add("autocomplete-active");
+            }
+
+            // Helper function to remove active class from all items
+            function removeActive(items) {
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove("autocomplete-active");
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

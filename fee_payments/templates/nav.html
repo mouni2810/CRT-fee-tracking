@@ -1,0 +1,163 @@
+<style>
+    .navbar {
+        width: 100%;
+        background-color: #333;
+        overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 80;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 0 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .navbar-brand {
+        color: white;
+        font-size: 22px;
+        font-weight: bold;
+        padding: 14px 2px 14px 2px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    /* Modified navbar-nav to align items to the right */
+    .navbar-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        /* Changed from center to flex-end */
+        flex-grow: 1;
+        margin-left: auto;
+        /* Added to push items to the right */
+    }
+
+    .navbar-nav a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 0px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        flex: 0 0 auto;
+        /* Changed from flex: 1 to prevent equal width */
+        margin: 0 10px;
+        /* Added margin for spacing between links */
+        min-width: 80px;
+        /* Minimum width for smaller screens */
+    }
+
+    .navbar-nav a:hover {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .navbar-nav a.active {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .content-wrapper {
+        padding-top: 105px;
+        /* Increased to accommodate taller navbar */
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Add logout button styles */
+    .navbar-right {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .logout-btn {
+        background-color: transparent;
+        color: white;
+        border: 1px solid #555;
+        border-radius: 4px;
+        padding: 8px 15px;
+        margin-right: 30px;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+    }
+
+    .logout-btn:hover {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+
+    .logout-btn i {
+        margin-right: 5px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .navbar {
+            flex-wrap: wrap;
+            /* Allow wrapping on small screens */
+        }
+
+        .navbar-brand {
+            flex-basis: 100%;
+            text-align: right;
+            padding: 14px 0;
+        }
+
+        .navbar-nav {
+            justify-content: flex-end;
+            /* Keep right alignment on mobile */
+            flex-wrap: wrap;
+            /* Allow wrapping on smaller screens */
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .navbar-nav a {
+            flex: 1 1 120px;
+            /* Allow growing but with minimum width */
+        }
+
+        .navbar-right {
+            width: 100%;
+            display: flex;
+            justify-content: right;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .content-wrapper {
+            padding-top: 210px;
+            /* Increased padding for mobile layout */
+        }
+    }
+</style>
+
+<div class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="navbar-brand">CRT fee tracking</a>
+    <div class="navbar-nav">
+        <a href="{{ url_for('dashboard') }}" {% if request.endpoint=='dashboard' %}class="active" {% endif
+            %}>Dashboard</a>
+        <a href="{{ url_for('payments') }}" {% if request.endpoint=='payments' %}class="active" {% endif %}>Payments</a>
+        <a href="{{ url_for('upload') }}" {% if request.endpoint=='upload' %}class="active" {% endif %}>Upload</a>
+        <a href="{{ url_for('student_details') }}" {% if request.endpoint=='student_details' %}class="active" {% endif
+            %}>Student Details</a>
+        <a href="{{ url_for('unpaid_students') }}" {% if request.endpoint=='unpaid_students' %}class="active" {% endif
+            %}>Download</a>
+        <a href="{{ url_for('delete_paid_students') }}" {% if request.endpoint=='delete_paid_students' %}class="active"
+            {% endif %}>Delete Paid</a>
+    </div>
+    <!-- Add logout button -->
+    <div class="navbar-right">
+        <a href="{{ url_for('logout') }}" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <!-- Content will be inserted here automatically -->
+</div>

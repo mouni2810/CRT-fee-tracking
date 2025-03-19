@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payments</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/vishnu.png') }}">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .payment-form-container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .form-title {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #333;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+        gap: 20px;
+    }
+
+    .form-group {
+        flex: 1 1 300px;
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+
+    select.form-control {
+        height: 38px;
+    }
+
+    .submit-btn {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+        background-color: #45a049;
+    }
+
+    .history-container {
+        background-color: white;
+        padding: 25px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-title {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 18px;
+        color: #333;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .payment-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    .payment-table th,
+    .payment-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .payment-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+
+    .payment-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .payment-status {
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+    }
+
+    .autocomplete-container {
+        position: relative;
+    }
+
+    .autocomplete-results {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: none;
+    }
+
+    .autocomplete-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #f5f5f5;
+    }
+
+    .autocomplete-item .reg-no {
+        font-weight: bold;
+    }
+
+    .autocomplete-item .name {
+        color: #666;
+        margin-left: 8px;
+    }
+
+    .fee-type-tag {
+        display: inline-block;
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: 3px;
+        padding: 3px 8px;
+        margin: 3px;
+        font-size: 0.9em;
+    }
+
+    .fee-type-tag.unpaid {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .fee-type-tag.partially-paid {
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+        color: #856404;
+    }
+
+    .fee-type-tag.paid {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+
+    .available-fees {
+        margin-top: 8px;
+        font-size: 0.9em;
+    }
+
+    /* Loading spinner */
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: none;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .fee-type-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 8px;
+    }
+
+    .fee-type-tag.selected {
+        background-color: #007bff;
+        color: white;
+        border-color: #0056b3;
+    }
+
+    .selected-fees-summary {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+</style>
+</head>
+
+<body>
+{% include 'nav.html' %}
+<!-- Flash Messages -->
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+
+<div class="payment-form-container">
+    <h3 class="form-title">Payment Details</h3>
+    <form id="paymentForm" action="{{ url_for('payments') }}" method="post">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="regd-number" class="form-label">Registration Number*</label>
+                <div class="autocomplete-container">
+                    <input type="text" id="regd-number" name="regd-number" class="form-control"
+                        placeholder="Enter registration number" required value="{{ reg_no }}">
+                    <div id="regdResults" class="autocomplete-results"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="student-name" class="form-label">Student Name</label>
+                <input type="text" id="student-name" name="student-name" class="form-control"
+                    placeholder="Student name (auto-filled)" readonly value="{{ student_name }}">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="batch-year" class="form-label">Batch Year*</label>
+                <input type="text" id="batch-year" name="batch-year" class="form-control" placeholder="YYYY-YYYY format"
+                    pattern="^\d{4}-\d{4}$" title="Format: YYYY-YYYY (e.g., 2022-2026)" required
+                    value="{{ batch_year }}">
+            </div>
+            <div class="form-group">
+                <label for="fee-type-input" class="form-label">Fee Type* (Separate multiple types with comma)</label>
+                <input type="text" id="fee-type-input" name="fee-type-input" class="form-control"
+                    placeholder="e.g. CRT, Phase 3" required>
+                <input type="hidden" id="fee-type-combined" name="fee-type-combined" value="">
+                <div id="fee-type-tags" class="fee-type-tags"></div>
+                <div id="available-fees" class="available-fees"></div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="payment-amount" class="form-label">Amount Paid*</label>
+                <input type="number" id="payment-amount" name="payment-amount" class="form-control"
+                    placeholder="Enter amount in rupees" min="1" step="any" required>
+            </div>
+            <div class="form-group">
+                <label for="payment-method" class="form-label">Payment Method*</label>
+                <select id="payment-method" name="payment-method" class="form-control" required>
+                    <option value="Cash">Cash</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="payment-date" class="form-label">Date of Payment*</label>
+                <input type="date" id="payment-date" name="payment-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="received-by" class="form-label">Received By*</label>
+                <select id="received-by" name="received-by" class="form-control" required>
+                    <option value="">Select Staff Name</option>
+                    <option value="R. Venkata Swathi">R.Venkata Swathi</option>
+                    <option value="K.P. Swaroop">K.P. Swaroop</option>
+                    <option value="H.C.P. Pavan Kumar">H.C.P. Pavan Kumar</option>
+                    <option value="M. Chinappanna">M. Chinappanna</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group" style="flex: 1 1 100%; display: flex; align-items: center;">
+                <button type="submit" class="submit-btn">Record Payment</button>
+                <div id="spinner" class="spinner"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="history-container">
+    <h3 class="history-title">Recent Payment History</h3>
+    {% if payment_history %}
+    <table class="payment-table">
+        <thead>
+            <tr>
+                <th>Registration #</th>
+                <th>Name</th>
+                <th>Batch Year</th>
+                <th>Fee Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Received By</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payment_history %}
+            <tr>
+                <td>{{ payment.regd_no }}</td>
+                <td>{{ payment.student_name }}</td>
+                <td>{{ payment.batch_year }}</td>
+                <td>{{ payment.fee_type }}</td>
+                <td>₹{{ payment.amount|float|round(2) }}</td>
+                <td>{{ payment.date }}</td>
+                <td>{{ payment.received_by }}</td>
+                <td><span class="payment-status status-paid">{{ payment.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <p>No payment records found.</p>
+    </div>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set today's date as default for payment date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('payment-date').value = today;
+
+        // Registration number autocomplete
+        const regdInput = document.getElementById('regd-number');
+        const resultsDiv = document.getElementById('regdResults');
+        const studentNameInput = document.getElementById('student-name');
+        const batchYearInput = document.getElementById('batch-year');
+        const feeTypeInput = document.getElementById('fee-type-input');
+        const feeTypeCombinedInput = document.getElementById('fee-type-combined');
+        const feeTypeTagsDiv = document.getElementById('fee-type-tags');
+        const availableFeesDiv = document.getElementById('available-fees');
+        const feeAmountInput = document.getElementById('payment-amount');
+        const feeDueSpan = document.getElementById('fee-due');
+        const spinner = document.getElementById('spinner');
+
+        // Variables to store student fee data
+        let currentStudentFees = [];
+
+        // Fetch student data from server when typing with debouncing
+        let debounceTimer;
+        regdInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+
+            const regdValue = this.value.trim();
+            if (regdValue.length < 3) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            // Show spinner while loading
+            spinner.style.display = 'inline-block';
+
+            debounceTimer = setTimeout(() => {
+                fetch(`/api/students?query=${regdValue}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsDiv.innerHTML = '';
+                        spinner.style.display = 'none';
+
+                        if (data.length > 0) {
+                            data.forEach(student => {
+                                const item = document.createElement('div');
+                                item.className = 'autocomplete-item';
+                                item.innerHTML = `<span class="reg-no">${student.regd_no}</span><span class="name">${student.name}</span>`;
+
+                                item.addEventListener('click', function () {
+                                    regdInput.value = student.regd_no;
+                                    studentNameInput.value = student.name;
+                                    batchYearInput.value = student.batch_year || '';
+                                    loadStudentFees(student.regd_no);
+                                    resultsDiv.style.display = 'none';
+                                });
+
+                                resultsDiv.appendChild(item);
+                            });
+
+                            resultsDiv.style.display = 'block';
+                        } else {
+                            resultsDiv.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching students:', error);
+                        spinner.style.display = 'none';
+                    });
+            }, 300);
+        });
+
+        // Function to handle fee type input changes
+        feeTypeInput.addEventListener('input', debounce(processFeeTypeInput, 500));
+        feeTypeInput.addEventListener('blur', processFeeTypeInput);
+
+        // Debounce function to limit how often a function is called
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Function to process fee type input
+        function processFeeTypeInput() {
+            const inputValue = feeTypeInput.value.trim();
+            if (!inputValue) {
+                feeTypeTagsDiv.innerHTML = '';
+                feeTypeCombinedInput.value = '';
+                return;
+            }
+
+            // Split by comma and clean up each entry
+            let feeTypes = inputValue.split(',')
+                .map(type => type.trim())
+                .filter(type => type.length > 0);
+
+            // Store normalized fee types in the hidden input
+            feeTypeCombinedInput.value = feeTypes.join('|');
+
+            // Update fee amount based on selected fee types
+            updateFeeAmount();
+        }
+
+        // Function to normalize fee type for display and comparison
+        function normalizeFeeType(feeType) {
+            feeType = feeType.toLowerCase().trim();
+
+            // Simple normalization rules
+            if (feeType.includes('crt')) return 'CRT Fee';
+            if (feeType.includes('phase 2') || feeType.includes('phase-2') ||
+                feeType.includes('phase2') || feeType.includes('phase-ii') ||
+                feeType.includes('phase ii')) {
+                return 'Smart Interviews Phase-II';
+            }
+            if (feeType.includes('phase 3') || feeType.includes('phase-3') ||
+                feeType.includes('phase3') || feeType.includes('phase-iii') ||
+                feeType.includes('phase iii')) {
+                return 'Smart Interviews Phase-III';
+            }
+
+            return feeType; // If no match, return the original
+        }
+
+        // Function to update fee amount based on selected fee types
+        function updateFeeAmount() {
+            if (!currentStudentFees.length) return;
+
+            const feeTypes = feeTypeCombinedInput.value.split('|');
+            if (!feeTypes || feeTypes.length === 0 || !feeTypes[0]) return;
+
+            // Calculate fee distribution based on original fee amounts
+            let totalFeeAmount = 0;
+            let selectedFeesDetails = [];
+
+            // First, find matching fees and calculate total original fee amount
+            feeTypes.forEach(inputFeeType => {
+                const normalizedType = normalizeFeeType(inputFeeType);
+
+                // Find matching fee in loaded student fees
+                const matchingFee = currentStudentFees.find(fee => {
+                    return normalizeFeeType(fee.fee_type) === normalizedType;
+                });
+
+                if (matchingFee) {
+                    const paidAmount = matchingFee.paid_amount || 0;
+                    const remainingAmount = Math.max(0, matchingFee.amount - paidAmount);
+                    totalFeeAmount += matchingFee.amount; // Use original amount for proportion calculation
+
+                    // Store details for display
+                    selectedFeesDetails.push({
+                        type: matchingFee.fee_type_display,
+                        original: matchingFee.amount,
+                        paid: paidAmount,
+                        remaining: remainingAmount
+                    });
+                }
+            });
+
+            // Now calculate payment distribution with updated algorithm
+            let totalDue = 0;
+            let distributionText = '';
+
+            if (selectedFeesDetails.length > 0 && totalFeeAmount > 0) {
+                // Calculate total remaining amount
+                const totalRemaining = selectedFeesDetails.reduce((sum, fee) => sum + fee.remaining, 0);
+
+                // If user entered a total amount manually
+                const userEnteredAmount = parseFloat(feeAmountInput.value);
+                const totalPayment = isNaN(userEnteredAmount) ? totalRemaining : userEnteredAmount;
+
+                distributionText = '<div class="selected-fees-summary">';
+
+                // Calculate and display distribution for each fee type
+                selectedFeesDetails.forEach((fee, index) => {
+                    // Calculate proportion based on original fee amount (not remaining)
+                    const proportion = fee.original / totalFeeAmount;
+                    const distributedAmount = Math.min(fee.remaining, proportion * totalPayment);
+
+                    if (distributedAmount > 0) {
+                        const percent = Math.round(proportion * 100);
+                        distributionText += `<div>${fee.type}: ₹${distributedAmount.toFixed(2)} (${percent}% of payment)</div>`;
+                        totalDue += distributedAmount;
+                    } else if (fee.remaining === 0) {
+                        distributionText += `<div>${fee.type}: Already fully paid (₹${fee.original})</div>`;
+                    }
+                });
+
+                distributionText += `<div><strong>Total Amount: ₹${totalDue.toFixed(2)}</strong></div>`;
+                distributionText += '</div>';
+
+                // If the input field is empty, set it to the calculated total due
+                if (feeAmountInput.value === '') {
+                    feeAmountInput.value = totalDue.toFixed(2);
+                }
+            }
+
+            // Update the UI with the distribution information
+            feeDueSpan.innerHTML = distributionText;
+
+            // Update fee type tags display
+            feeTypeTagsDiv.innerHTML = '';
+            selectedFeesDetails.forEach(fee => {
+                const tag = document.createElement('span');
+                tag.className = 'fee-type-tag selected';
+                tag.textContent = fee.type;
+                feeTypeTagsDiv.appendChild(tag);
+            });
+
+            if (selectedFeesDetails.length === 0) {
+                feeDueSpan.textContent = '';
+                feeTypeTagsDiv.innerHTML = '<em>No matching fee types found</em>';
+            }
+        }
+
+        // Function to load student fees
+        function loadStudentFees(regdNo) {
+            spinner.style.display = 'inline-block';
+            availableFeesDiv.innerHTML = '';
+
+            fetch(`/api/student-fees?regd_no=${regdNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    spinner.style.display = 'none';
+                    currentStudentFees = data;
+
+                    if (data.length > 0) {
+                        // Create fee type tags
+                        let feeTypesHTML = '<strong>Available Fee Types:</strong> ';
+
+                        data.forEach(fee => {
+                            const paidAmount = fee.paid_amount || 0;
+                            const remainingAmount = Math.max(0, fee.amount - paidAmount);
+                            let status = 'unpaid';
+
+                            if (paidAmount >= fee.amount) {
+                                status = 'paid';
+                            } else if (paidAmount > 0) {
+                                status = 'partially-paid';
+                            }
+
+                            const tag = document.createElement('span');
+                            tag.className = `fee-type-tag ${status}`;
+
+                            // Only show remaining amount if it's greater than 0
+                            if (remainingAmount > 0) {
+                                tag.textContent = `${fee.fee_type_display} (₹${remainingAmount} due)`;
+                            } else {
+                                tag.textContent = fee.fee_type_display;
+                            }
+
+                            tag.dataset.feeType = fee.fee_type;
+                            tag.dataset.remaining = remainingAmount;
+                            tag.addEventListener('click', () => {
+                                // Add the fee type to the input
+                                const currentValue = feeTypeInput.value.trim();
+                                if (currentValue) {
+                                    feeTypeInput.value = currentValue + ', ' + fee.fee_type_display;
+                                } else {
+                                    feeTypeInput.value = fee.fee_type_display;
+                                }
+                                processFeeTypeInput();
+                            });
+
+                            availableFeesDiv.appendChild(tag);
+                            availableFeesDiv.appendChild(document.createTextNode(' '));
+                        });
+
+                        // If fee type is already in URL, process it
+                        if (feeTypeInput.value) {
+                            processFeeTypeInput();
+                        }
+                    } else {
+                        availableFeesDiv.innerHTML = '<em>No fee records found for this student</em>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading student fees:', error);
+                    spinner.style.display = 'none';
+                    availableFeesDiv.innerHTML = '<em class="text-danger">Error loading fee information</em>';
+                });
+        }
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', function (e) {
+            if (e.target !== regdInput && e.target !== resultsDiv && !resultsDiv.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+
+        // Function to validate form data for receipt generation
+        function validateFormData() {
+            const feeTypes = feeTypeCombinedInput.value.trim();
+
+            return regdInput.value &&
+                studentNameInput.value &&
+                feeTypes &&
+                feeAmountInput.value &&
+                parseFloat(feeAmountInput.value) > 0 &&
+                document.getElementById('payment-method').value;
+        }
+
+        // Form validation
+        const form = document.getElementById('paymentForm');
+        form.addEventListener('submit', function (event) {
+            const amount = feeAmountInput.value;
+            if (!amount || parseFloat(amount) <= 0) {
+                event.preventDefault();
+                alert('Payment amount must be greater than zero.');
+                return;
+            }
+
+            const batchYear = batchYearInput.value;
+            const batchPattern = /^\d{4}-\d{4}$/;
+            if (!batchPattern.test(batchYear)) {
+                event.preventDefault();
+                alert('Batch Year must be in YYYY-YYYY format (e.g., 2022-2026).');
+                return;
+            }
+
+            const feeTypes = feeTypeCombinedInput.value.trim();
+            if (!feeTypes) {
+                event.preventDefault();
+                alert('Please enter at least one fee type.');
+                return;
+            }
+        });
+
+        // If registration number is pre-filled, load associated fees
+        if (regdInput.value) {
+            loadStudentFees(regdInput.value);
+        }
+    });
+</script>
+</html>

@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}Chart Data Debug - Fee Management System{% endblock %}
+
+{% block styles %}
+<style>
+    .debug-container {
+        padding: 20px;
+    }
+
+    .data-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    h2 {
+        color: #333;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .debug-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .debug-table th,
+    .debug-table td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .debug-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+
+    .debug-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    .total-row {
+        font-weight: bold;
+        background-color: #e9ecef;
+    }
+
+    .back-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 15px;
+        background-color: #4CAF50;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+    }
+
+    .back-button:hover {
+        background-color: #45a049;
+    }
+
+    .tab-container {
+        margin-bottom: 20px;
+    }
+
+    .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+        border-radius: 5px 5px 0 0;
+    }
+
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 16px;
+    }
+
+    .tab button:hover {
+        background-color: #ddd;
+    }
+
+    .tab button.active {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .tabcontent {
+        display: none;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        background-color: white;
+    }
+
+    .fix-action {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 5px;
+    }
+
+    .action-button {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 8px 15px;
+        background-color: #dc3545;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .action-button:hover {
+        background-color: #c82333;
+    }
+
+    .error-message {
+        color: #721c24;
+        background-color: #f8d7da;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        display: none;
+    }
+
+    .success-message {
+        color: #155724;
+        background-color: #d4edda;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="debug-container">
+    <h1>Chart Data Debug: Fee Distribution Analysis</h1>
+
+    <div class="tab-container">
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'PaymentSummary')">Payment Summary</button>
+            <button class="tablinks" onclick="openTab(event, 'FeeMaster')">FeeMaster Records</button>
+            <button class="tablinks" onclick="openTab(event, 'PaymentRecords')">Payment Records</button>
+            <button class="tablinks" onclick="openTab(event, 'BatchDetails')">2023-2027 CRT Detail</button>
+        </div>
+
+        <div id="PaymentSummary" class="tabcontent" style="display: block;">
+            <h2>Summary of Payment Totals by Batch Year and Fee Type</h2>
+            {% if payment_summary %}
+            <table class="debug-table">
+                <thead>
+                    <tr>
+                        <th>Batch Year</th>
+                        <th>Fee Type</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in payment_summary %}
+                    <tr {% if row.batch_year=='2023-2027' and row.standardized_fee_type=='CRT'
+                        %}style="background-color: #ffffcc;" {% endif %}>
+                        <td>{{ row.batch_year }}</td>
+                        <td>{{ row.standardized_fee_type }}</td>
+                        <td>₹{{ row.amount_paid|int }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No payment summary data available.</p>
+            {% endif %}
+        </div>
+
+        <div id="FeeMaster" class="tabcontent">
+            <h2>FeeMaster Records for 2023-2027 Batch</h2>
+            {% if fee_master %}
+            <table class="debug-table">
+                <thead>
+                    <tr>
+                        <th>Fee ID</th>
+                        <th>Registration #</th>
+                        <th>Fee Type</th>
+                        <th>Amount</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in fee_master %}
+                    <tr>
+                        <td>{{ fee.id }}</td>
+                        <td>{{ fee.regd_no }}</td>
+                        <td>{{ fee.fee_type }}</td>
+                        <td>₹{{ fee.amount|int }}</td>
+                        <td>{{ fee.remarks }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3">Total Fee Assigned</td>
+                        <td>₹{{ fee_master|sum(attribute='amount')|int }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            {% else %}
+            <p>No fee master records found for this batch.</p>
+            {% endif %}
+        </div>
+
+        <div id="PaymentRecords" class="tabcontent">
+            <h2>Payment Records for 2023-2027 Batch</h2>
+            {% if payment_details %}
+            <table class="debug-table">
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Registration #</th>
+                        <th>Fee Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payment_details %}
+                    <tr>
+                        <td>{{ payment.id }}</td>
+                        <td>{{ payment.regd_no }}</td>
+                        <td>{{ payment.fee_type }}</td>
+                        <td>₹{{ payment.amount|int }}</td>
+                        <td>{{ payment.date }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="3">Total Payments</td>
+                        <td>₹{{ payment_details|sum(attribute='amount')|int }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            {% else %}
+            <p>No payment records found for this batch.</p>
+            {% endif %}
+        </div>
+
+        <div id="BatchDetails" class="tabcontent">
+            <h2>2023-2027 Batch CRT Fee Details</h2>
+
+            {% if crt_totals %}
+            <div class="data-card">
+                <h3>CRT Fee Data Summary</h3>
+                <table class="debug-table">
+                    <tr>
+                        <th>Total Students with CRT Fee</th>
+                        <td>{{ crt_totals.total_students }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total CRT Fee Amount</th>
+                        <td>₹{{ crt_totals.total_fee_amount|int }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total CRT Payment Records</th>
+                        <td>{{ crt_totals.payment_records }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total CRT Paid Amount</th>
+                        <td>₹{{ crt_totals.paid_amount|int }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            {% if duplicate_payments %}
+            <div class="data-card">
+                <h3>Possible Duplicate Payments</h3>
+                <table class="debug-table">
+                    <thead>
+                        <tr>
+                            <th>Registration #</th>
+                            <th>Fee Type</th>
+                            <th>Payment Count</th>
+                            <th>Total Paid</th>
+                            <th>Fee Amount</th>
+                            <th>Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dup in duplicate_payments %}
+                        <tr>
+                            <td>{{ dup.regd_no }}</td>
+                            <td>{{ dup.fee_type }}</td>
+                            <td>{{ dup.payment_count }}</td>
+                            <td>₹{{ dup.total_paid|int }}</td>
+                            <td>₹{{ dup.fee_amount|int }}</td>
+                            <td>₹{{ (dup.total_paid - dup.fee_amount)|int }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="fix-action">
+                <h3>Potential Fix Actions</h3>
+                <p>If there are duplicate or incorrect payment records, you can delete them below:</p>
+                <button id="delete-duplicates" class="action-button">Delete Duplicate Payments</button>
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" class="success-message"></div>
+            </div>
+
+            {% else %}
+            <p>No CRT fee data available for 2023-2027 batch.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{{ url_for('dashboard') }}" class="back-button">Return to Dashboard</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Delete duplicate payments functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteButton = document.getElementById('delete-duplicates');
+        const errorMessage = document.getElementById('error-message');
+        const successMessage = document.getElementById('success-message');
+
+        if (deleteButton) {
+            deleteButton.addEventListener('click', function () {
+                if (confirm("Are you sure you want to remove duplicate payment records? This action cannot be undone.")) {
+                    // Make API request to delete duplicate payments
+                    fetch('/api/fix-duplicate-payments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            batch_year: '2023-2027',
+                            fee_type: 'crt'
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                successMessage.style.display = 'block';
+                                successMessage.textContent = data.message;
+                                errorMessage.style.display = 'none';
+
+                                // Reload page after 2 seconds
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000);
+                            } else {
+                                errorMessage.style.display = 'block';
+                                errorMessage.textContent = data.error;
+                                successMessage.style.display = 'none';
+                            }
+                        })
+                        .catch(error => {
+                            errorMessage.style.display = 'block';
+                            errorMessage.textContent = "An error occurred. Please try again.";
+                            successMessage.style.display = 'none';
+                            console.error('Error:', error);
+                        });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

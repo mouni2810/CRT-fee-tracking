@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/vishnu.png') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .upload-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .upload-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .file-input-group {
+            margin-bottom: 20px;
+        }
+
+        .file-input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            background-color: #e7f3fe;
+            padding: 15px;
+            border-left: 5px solid #2196F3;
+            border-radius: 4px;
+        }
+
+        .info-title {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #0c5460;
+        }
+
+        .sample-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .sample-link:hover {
+            text-decoration: underline;
+        }
+
+        .required-column {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .column-description {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .columns-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .columns-table th,
+        .columns-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .columns-table th {
+            background-color: #f2f2f2;
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .flash-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    <div class="container">
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="upload-box">
+            <h3 class="upload-title">Upload Student Fee Details</h3>
+
+            <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+                <div class="file-input-group">
+                    <label for="excel-file" class="file-input-label">Choose Excel or CSV File:</label>
+                    <input type="file" id="excel-file" name="excel-file" class="file-input" accept=".xlsx,.xls,.csv"
+                        required>
+                </div>
+
+                <button type="submit" class="upload-btn">Upload File</button>
+            </form>
+
+            <div class="info-box">
+                <h3 class="info-title">Required Format</h3>
+                <p>Your Excel/CSV file must include the following columns:</p>
+
+                <table class="columns-table">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="required-column">regd_no</td>
+                            <td>23b01a1247</td>
+                        </tr>
+                        <tr>
+                            <td class="required-column">name</td>
+                            <td>John Doe</td>
+                        </tr>
+                        <tr>
+                            <td class="required-column">batch_year</td>
+                            <td>2022-2026 (Academic batch in YYYY-YYYY format)</td>
+                        </tr>
+                        <tr>
+                            <td class="required-column">branch</td>
+                            <td>CSE, IT, CSE-AI&DS, CSE-AI&ML, ECE, EEE, CE, ME</td>
+                        </tr>
+                        <tr>
+                            <td>mobile</td>
+                            <td>Contact number(9876543210)</td>
+                        </tr>
+                        <tr>
+                            <td class="required-column">fee_type</td>
+                            <td>Type of fee (CRT, Phase 2, Phase 3)</td>
+                        </tr>
+                        <tr>
+                            <td class="required-column">amount</td>
+                            <td>Total fee amount (15000, 7500, 5000)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="template-buttons">
+                    <a href="{{ url_for('download_template', format='csv') }}" class="btn btn-primary">Download CSV
+                        Template</a>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const fileInput = document.getElementById('excel-file');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                e.preventDefault();
+                alert('Please select a file to upload');
+                return;
+            }
+
+            const fileName = file.name;
+            const fileExt = fileName.split('.').pop().toLowerCase();
+
+            if (!['xlsx', 'xls', 'csv'].includes(fileExt)) {
+                e.preventDefault();
+                alert('Invalid file type. Please select an Excel (.xlsx, .xls) or CSV (.csv) file.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                e.preventDefault();
+                alert('File is too large. Please select a file smaller than 10MB.');
+                return;
+            }
+        });
+    </script>
+</body>
+
+</html>

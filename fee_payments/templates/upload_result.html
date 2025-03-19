@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Results - Fee Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .result-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .summary-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .error-list {
+            background-color: #fff3f3;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .error-list h4 {
+            margin-top: 0;
+            color: #dc3545;
+        }
+
+        .error-list ul {
+            margin-bottom: 0;
+        }
+
+        .error-list li {
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+
+    <div class="container">
+        <h2>Upload Results</h2>
+
+        <div class="result-box">
+            <div class="summary-card">
+                <h3 class="result-title">Upload Summary</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ summary.records_processed }}</div>
+                        <div class="stat-label">Records Processed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ summary.student_records_added }}</div>
+                        <div class="stat-label">New Students Added</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ summary.fee_records_added }}</div>
+                        <div class="stat-label">Fee Records Added</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if summary.errors %}
+            <div class="error-list">
+                <h4>Errors ({{ summary.errors|length }})</h4>
+                <ul>
+                    {% for error in summary.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="action-buttons">
+                <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload Another File</a>
+                {% if summary.added_reg_numbers %}
+                <a href="{{ url_for('student_details', reg_numbers=summary.added_reg_numbers) }}"
+                    class="btn btn-secondary">View Added Records</a>
+                {% else %}
+                <a href="{{ url_for('student_details') }}" class="btn btn-secondary">View Student Details</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

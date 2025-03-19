@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/vishnu.png') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #28a745;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, .05);
+        }
+
+        .table th {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+        }
+
+        .table td {
+            padding: 12px 8px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-bottom: 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .filter-select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover {
+            background-color: #0069d9;
+        }
+
+        .download-options {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'nav.html' %}
+    <div class="container">
+        <h2>Download</h2>
+
+        <!-- Add filter form -->
+        <form method="get" action="{{ url_for('unpaid_students') }}" class="filter-container">
+            <div>
+                <label for="fee_type">Fee Type:</label>
+                <select name="fee_type" id="fee_type" class="filter-select">
+                    <option value="">All Fee Types</option>
+                    {% for fee in fee_types %}
+                    <option value="{{ fee }}" {% if fee==selected_fee_type %}selected{% endif %}>{{ fee }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="batch_year">Batch Year:</label>
+                <select name="batch_year" id="batch_year" class="filter-select">
+                    <option value="">All Batch Years</option>
+                    {% for year in batch_years %}
+                    <option value="{{ year }}" {% if year==selected_batch_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="branch">Branch:</label>
+                <select name="branch" id="branch" class="filter-select">
+                    <option value="">All Branches</option>
+                    {% for b in branches %}
+                    <option value="{{ b }}" {% if b==selected_branch %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="filter-btn">Apply Filters</button>
+        </form>
+
+        <!-- Download options based on current filters -->
+        <div class="download-options">
+            <a href="{{ request.path }}?{{ request.query_string.decode() }}&download_csv=true" class="btn">Download
+                CSV</a>
+        </div>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Registration Number</th>
+                    <th>Name</th>
+                    <th>Batch Year</th>
+                    <th>Branch</th>
+                    <th>Fee Type</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in unpaid_students %}
+                <tr>
+                    <td>{{ student.regd_no }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.batch_year }}</td>
+                    <td>{{ student.branch }}</td>
+                    <td>{{ student.fee_type }}</td>
+                    <td>₹{{ student.total_amount|round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
